@@ -1,0 +1,330 @@
+﻿@model PageDemo1.Models.CreatePostViewModel
+@{
+    ViewData["Title"] = "Create Post";
+}
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Admin.css" asp-append-version="true" />
+
+</head>
+<body>
+    <!-- Floating Background Icons -->
+    <div class="floating-icon"><i class="fas fa-pencil-alt"></i></div>
+    <div class="floating-icon"><i class="fas fa-heart"></i></div>
+    <div class="floating-icon"><i class="fas fa-star"></i></div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-edit"></i>
+                สร้างโพสต์ใหม่
+            </h1>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="create-post-card">
+            <!-- Success Message -->
+            <div class="success-message" id="successMessage">
+                <i class="fas fa-magic"></i>
+                <span>เนื้อหาถูกสร้างขึ้นแล้ว! คุณสามารถแก้ไขได้ตามต้องการ</span>
+            </div>
+
+            <form method="post" asp-action="SavePost" id="createPostForm">
+                <!-- User Selection -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <i class="fas fa-user-circle"></i>
+                        เลือกผู้ใช้
+                    </label>
+                    <select asp-for="SelectedUser" asp-items="@(new SelectList(Model.UserNames))" class="form-select">
+                        <option value="">-- เลือกผู้ใช้ --</option>
+                    </select>
+                </div>
+
+                <!-- Content Input -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <i class="fas fa-align-left"></i>
+                        เนื้อหาโพสต์
+                    </label>
+                    <textarea asp-for="Content" class="form-control content-textarea" rows="6"
+                              placeholder="เขียนเนื้อหาโพสต์ของคุณที่นี่... แชร์ความคิด ประสบการณ์ หรือเรื่องราวที่น่าสนใจ"
+                              id="contentTextarea"></textarea>
+                    <div class="char-counter" id="charCounter">0 / 1000 ตัวอักษร</div>
+                </div>
+
+                <!-- AI Prompt Section -->
+                <div class="form-section">
+                    <button type="button" class="btn-custom btn-prompt" id="addPromptBtn">
+                        <i class="fas fa-robot"></i>
+                        ใช้ AI ช่วยเขียน
+                    </button>
+
+                    <div class="prompt-section d-none" id="promptSection">
+                        <div class="prompt-header">
+                            <i class="fas fa-magic"></i>
+                            <span>AI Content Generator</span>
+                        </div>
+                        <input type="text" id="promptInput" class="form-control mb-3"
+                               placeholder="บอก AI ว่าคุณต้องการเนื้อหาแบบไหน เช่น 'เขียนเกี่ยวกับการเดินทาง' หรือ 'รีวิวร้านอาหาร'" />
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn-custom btn-generate" id="generateContentBtn">
+                                <i class="fas fa-wand-magic-sparkles"></i>
+                                สร้างเนื้อหา
+                            </button>
+                            <button type="button" class="btn-custom btn-back" id="cancelPromptBtn">
+                                <i class="fas fa-times"></i>
+                                ยกเลิก
+                            </button>
+                        </div>
+
+                        <!-- Loading Animation -->
+                        <div class="loading" id="loadingAnimation">
+                            <div class="spinner"></div>
+                            <p>AI กำลังสร้างเนื้อหาให้คุณ...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Image Folder Selection -->
+                <div class="form-section">
+                    <label class="form-label">
+                        <i class="fas fa-folder-open"></i>
+                        เลือกหมวดหมู่รูปภาพ
+                    </label>
+                    <select class="form-select" id="imageFolderDropdown">
+                        <option value="">-- เลือกหมวดหมู่ --</option>
+                    </select>
+                </div>
+
+                <!-- Image Preview -->
+                <div class="form-section">
+                    <img id="imagePreview" src="" alt="Image Preview" class="img-fluid" style="display:none; max-height: 300px;" />
+                </div>
+                <input type="hidden" name="ImageUrl" id="ImageUrl" />
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="/" class="btn-custom btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        กลับหน้าหลัก
+                    </a>
+                    <button type="submit" class="btn-custom btn-save" id="saveBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        บันทึกโพสต์
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageFolderDropdown = document.getElementById('imageFolderDropdown');
+            const imagePreview = document.getElementById('imagePreview');
+
+            // Load image folders on page load
+            fetch('/Admin/GetImageFolders')
+                .then(response => response.json())
+                .then(folders => {
+                    folders.forEach(folder => {
+                        const option = document.createElement('option');
+                        option.value = folder;
+                        option.textContent = folder;
+                        imageFolderDropdown.appendChild(option);
+                    });
+                });
+
+            // When folder selected -> get random image
+            imageFolderDropdown.addEventListener('change', function() {
+                const selectedFolder = this.value;
+                if (!selectedFolder) {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '';
+                    return;
+                }
+
+                fetch(`/Admin/GetRandomImage?folderName=${encodeURIComponent(selectedFolder)}`)
+                 .then(response => response.json())
+                 .then(data => {
+                     if (data.imageUrl) {
+                         imagePreview.src = data.imageUrl;
+                         imagePreview.style.display = 'block';
+                         document.getElementById('ImageUrl').value = data.imageUrl; // ตั้งค่าให้ Hidden Field
+                     } else {
+                         imagePreview.style.display = 'none';
+                         imagePreview.src = '';
+                         document.getElementById('ImageUrl').value = '';
+                     }
+                 });
+            });
+            const addPromptBtn = document.getElementById('addPromptBtn');
+            const promptSection = document.getElementById('promptSection');
+            const cancelPromptBtn = document.getElementById('cancelPromptBtn');
+            const generateContentBtn = document.getElementById('generateContentBtn');
+            const promptInput = document.getElementById('promptInput');
+            const contentTextarea = document.getElementById('contentTextarea');
+            const loadingAnimation = document.getElementById('loadingAnimation');
+            const successMessage = document.getElementById('successMessage');
+            const charCounter = document.getElementById('charCounter');
+            const saveBtn = document.getElementById('saveBtn');
+            const form = document.getElementById('createPostForm');
+
+            // Character counter
+            function updateCharCounter() {
+                const length = contentTextarea.value.length;
+                const maxLength = 1000;
+                charCounter.textContent = `${length} / ${maxLength} ตัวอักษร`;
+
+                if (length > maxLength * 0.9) {
+                    charCounter.classList.add('danger');
+                    charCounter.classList.remove('warning');
+                } else if (length > maxLength * 0.7) {
+                    charCounter.classList.add('warning');
+                    charCounter.classList.remove('danger');
+                } else {
+                    charCounter.classList.remove('warning', 'danger');
+                }
+            }
+
+            contentTextarea.addEventListener('input', updateCharCounter);
+            updateCharCounter();
+
+            // Show prompt section
+            addPromptBtn.addEventListener('click', function() {
+                promptSection.classList.remove('d-none');
+                promptSection.classList.add('show');
+                promptInput.focus();
+                this.style.display = 'none';
+            });
+
+            // Hide prompt section
+            cancelPromptBtn.addEventListener('click', function() {
+                promptSection.classList.add('d-none');
+                promptSection.classList.remove('show');
+                addPromptBtn.style.display = 'inline-flex';
+                promptInput.value = '';
+                hideLoading();
+            });
+
+            // Generate content
+            generateContentBtn.addEventListener('click', function() {
+                const prompt = promptInput.value.trim();
+
+                if (!prompt) {
+                    alert('กรุณาใส่คำสั่งให้ AI');
+                    promptInput.focus();
+                    return;
+                }
+
+                showLoading();
+
+                fetch('/Admin/GenerateContent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt: prompt })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('เกิดข้อผิดพลาดในการสร้างเนื้อหา');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    contentTextarea.value = data.content;
+                    updateCharCounter();
+                    showSuccessMessage();
+
+                    // Hide prompt section after success
+                    setTimeout(() => {
+                        cancelPromptBtn.click();
+                    }, 2000);
+                })
+                .catch(error => {
+                    hideLoading();
+                    alert('เกิดข้อผิดพลาด: ' + error.message);
+                });
+            });
+
+            // Enter key support for prompt input
+            promptInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    generateContentBtn.click();
+                }
+            });
+
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                const selectedUser = document.querySelector('select[name="SelectedUser"]').value;
+                const content = contentTextarea.value.trim();
+
+                if (!selectedUser) {
+                    e.preventDefault();
+                    alert('กรุณาเลือกผู้ใช้');
+                    return;
+                }
+
+                if (!content) {
+                    e.preventDefault();
+                    alert('กรุณากรอกเนื้อหาโพสต์');
+                    contentTextarea.focus();
+                    return;
+                }
+
+                // Show loading on save button
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึก...';
+                saveBtn.disabled = true;
+            });
+
+            function showLoading() {
+                loadingAnimation.classList.add('show');
+                generateContentBtn.disabled = true;
+                generateContentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังสร้าง...';
+            }
+
+            function hideLoading() {
+                loadingAnimation.classList.remove('show');
+                generateContentBtn.disabled = false;
+                generateContentBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> สร้างเนื้อหา';
+            }
+
+            function showSuccessMessage() {
+                successMessage.classList.add('show');
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 5000);
+            }
+
+            // Auto-expand textarea
+            contentTextarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 300) + 'px';
+            });
+
+            // Focus effects
+            const formControls = document.querySelectorAll('.form-control, .form-select');
+            formControls.forEach(control => {
+                control.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+
+                control.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

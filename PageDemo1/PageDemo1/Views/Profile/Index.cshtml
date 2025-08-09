@@ -1,0 +1,264 @@
+﻿@model PageDemo1.Models.ProfileViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.UserName - โปรไฟล์</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Profile.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/Home.css" asp-append-version="true" />
+
+</head>
+<body>
+
+    <!-- Topbar -->
+    <div class="topbar">
+        <a href="@Url.Action("Index", "Home")" class="logo" style="text-decoration:none; color:#1877f2;">
+            <i class="fas fa-comments"></i>
+            XCOPPOST
+        </a>
+        <div class="login-form">
+            <input type="text" class="form-control form-control-sm" placeholder="อีเมลหรือโทรศัพท์" />
+            <input type="password" class="form-control form-control-sm" placeholder="รหัสผ่าน" />
+            <button class="btn btn-login">
+                login
+            </button>
+            <button class="btn btn-login">
+                logout
+            </button>
+            <div class="theme-toggle">
+                <i class="fas fa-sun" id="themeIcon"></i>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header m">
+            <div class="profile-content">
+                <img src="@Model.ProfileImage" alt="Profile" class="profile-avatar" />
+                <h1 class="profile-name">@Model.UserName</h1>
+                <p class="profile-bio">@Model.Bio</p>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.Followers</span>
+                        <span class="stat-label">ผู้ติดตาม</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.Friends</span>
+                        <span class="stat-label">เพื่อน</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">@Model.Posts.Count()</span>
+                        <span class="stat-label">โพสต์</span>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <a href="#" class="btn-custom btn-primary-custom">
+                        <i class="fas fa-user-plus"></i>
+                        ติดตาม
+                    </a>
+                    <a href="#" class="btn-custom btn-outline-custom">
+                        <i class="fas fa-comment"></i>
+                        ส่งข้อความ
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posts Section -->
+        <div class="posts-section">
+            <h2 class="section-title">
+                <i class="fas fa-images"></i>
+                โพสต์ทั้งหมด
+            </h2>
+
+            @foreach (var post in Model.Posts)
+            {
+                <div class="post-card">
+                    <div class="post-header">
+                        <img src="@post.ProfileImage" alt="avatar" class="post-avatar" />
+                        <div class="post-user-info">
+                            <h5>@post.UserName</h5>
+                            <div class="post-time">
+                                <i class="far fa-clock"></i>
+                                @post.Time
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post-content">
+                        @Html.Raw(post.Content)
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(post.ImageUrl))
+                    {
+                        <img src="@post.ImageUrl" class="post-image" alt="Post image" />
+                    }
+
+                    <div class="post-actions">
+                        <button class="post-action-btn">
+                            <i class="far fa-heart"></i>
+                            @post.Likes.ToString("N0") ถูกใจ
+                        </button>
+                        <button class="post-action-btn">
+                            <i class="far fa-comment"></i>
+                            แสดงความคิดเห็น
+                        </button>
+                        <button class="post-action-btn">
+                            <i class="fas fa-share"></i>
+                            @post.Shares.ToString("N0") แชร์
+                        </button>
+                        <button class="post-action-btn">
+                            <i class="far fa-bookmark"></i>
+                            @post.Saves.ToString("N0") บันทึก
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+        <!-- Bottom Banner -->
+      
+    </div>
+    <div class="bottom-banner-wrapper">
+        <div class="bottom-banner">
+            <div class="banner-header">
+                <i class="fas fa-rocket"></i>
+                <h3>เข้าร่วมชุมชน XCOPPOST</h3>
+            </div>
+            <p>
+                🌟 เข้าสู่ระบบหรือสมัครใช้งานเพื่อเชื่อมต่อกับเพื่อน ครอบครัว และคนที่คุณรู้จัก<br />
+                💫 แชร์ประสบการณ์ สร้างเนื้อหา และติดตามกระแสใหม่ล่าสุด
+            </p>
+            <div class="banner-buttons">
+                <button class="btn-custom btn-primary-custom" onclick="showLoginModal()">
+                    <i class="fas fa-sign-in-alt"></i>
+                    เข้าสู่ระบบ
+                </button>
+                <button class="btn-custom btn-success-custom" onclick="showRegisterModal()">
+                    <i class="fas fa-user-plus"></i>
+                    สร้างบัญชีใหม่
+                </button>
+            </div>
+            <div class="social-stats">
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span>1.2M+</span>
+                    <small>สมาชิก</small>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-comments"></i>
+                    <span>850K+</span>
+                    <small>โพสต์</small>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-heart"></i>
+                    <span>5.7M+</span>
+                    <small>ถูกใจ</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Floating Action Button -->
+    <div class="fab" title="โพสต์ใหม่">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <div class="scroll-top" id="scrollTop">
+        <i class="fas fa-chevron-up"></i>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add smooth scrolling and interaction effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate post cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all post cards
+            document.querySelectorAll('.post-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'all 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Add click effects to action buttons
+            document.querySelectorAll('.post-action-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Add ripple effect
+                    const ripple = document.createElement('span');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(102, 126, 234, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = e.offsetX - 10 + 'px';
+                    ripple.style.top = e.offsetY - 10 + 'px';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+
+                    this.style.position = 'relative';
+                    this.appendChild(ripple);
+
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+    <script>
+        const themeToggle = document.querySelector('.theme-toggle');
+        const themeIcon = document.getElementById('themeIcon');
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            } else {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            }
+        });
+    </script>
+
+</body>
+</html>

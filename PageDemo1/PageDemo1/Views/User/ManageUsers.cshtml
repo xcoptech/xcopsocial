@@ -1,0 +1,358 @@
+﻿@{
+    ViewData["Title"] = "Manage Users";
+}
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/Manage.css" asp-append-version="true" />
+
+</head>
+<body>
+    <!-- Floating Background -->
+    <div class="floating-bg"><i class="fas fa-users-cog"></i></div>
+    <div class="floating-bg"><i class="fas fa-robot"></i></div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-users-cog"></i>
+                จัดการผู้ใช้อัตโนมัติ
+            </h1>
+            <p class="page-subtitle">สร้างและจัดการบัญชีผู้ใช้ด้วย AI แบบอัตโนมัติ</p>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard-card">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-header">
+                    <i class="fas fa-magic"></i>
+                    <div>
+                        <h3>เครื่องมือสร้างผู้ใช้อัตโนมัติ</h3>
+                        <small class="text-muted">สร้างบัญชีผู้ใช้จำลองด้วย AI</small>
+                    </div>
+                </div>
+
+                <!-- User Count Input -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-hashtag"></i>
+                        จำนวนผู้ใช้ที่ต้องการสร้าง
+                    </label>
+                    <input type="number" id="userCount" class="form-control"
+                           placeholder="ใส่จำนวนผู้ใช้ที่ต้องการสร้าง (เช่น 10, 50, 100)"
+                           min="1" max="1000" value="10" />
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="text-center">
+                    <button class="btn-custom btn-start" id="startBtn">
+                        <i class="fas fa-play"></i>
+                        เริ่มสร้างผู้ใช้
+                    </button>
+                    <button class="btn-custom btn-stop" id="stopBtn" disabled>
+                        <i class="fas fa-stop"></i>
+                        หยุดการทำงาน
+                    </button>
+                    <a href="/" class="btn-custom btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        กลับหน้าหลัก
+                    </a>
+                </div>
+            </div>
+
+            <!-- Status Panel -->
+            <div class="status-panel">
+                <div class="status-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h4>สถานะการทำงาน</h4>
+                </div>
+                <div class="status-content" id="status">
+                    <i class="fas fa-clock"></i>
+                    พร้อมใช้งาน - คลิก "เริ่มสร้างผู้ใช้" เพื่อเริ่มต้น
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">0 / 0 ผู้ใช้</div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">ผู้ใช้ทั้งหมด</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="stat-number" id="createdToday">0</div>
+                    <div class="stat-label">สร้างวันนี้</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" id="estimatedTime">--</div>
+                    <div class="stat-label">เวลาโดยประมาณ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-number" id="successRate">100%</div>
+                    <div class="stat-label">อัตราสำเร็จ</div>
+                </div>
+            </div>
+      
+
+        </div>
+        <!-- Generated Users List -->
+        <div class="status-panel" id="generated-users">
+            <h5><i class="fas fa-user-friends"></i> รายชื่อผู้ใช้ที่สร้างใหม่</h5>
+            <ul id="generatedUsersList" class="list-group">
+                <!-- รายชื่อจะถูกเพิ่มตรงนี้ -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function renderGeneratedUsers(users) {
+            const container = document.getElementById('generated-users');
+            container.innerHTML = ''; // เคลียร์ของเก่าออกก่อน
+
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-card';
+                userDiv.innerHTML = `
+                    <img src="${user.profileImage}" alt="${user.userName}" width="50" height="50" />
+                    <div>${user.userName}</div>
+                `;
+                container.appendChild(userDiv);
+            });
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const userCountInput = document.getElementById('userCount');
+            const statusDiv = document.getElementById('status');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+
+            let isGenerating = false;
+            let generationInterval;
+            let currentProgress = 0;
+            let totalUsers = 0;
+
+            // Initialize
+            updateStats();
+            calculateEstimatedTime();
+
+            // User count input change
+            userCountInput.addEventListener('input', function() {
+                calculateEstimatedTime();
+                validateInput();
+            });
+
+            function validateInput() {
+                const count = parseInt(userCountInput.value);
+                const isValid = count >= 1 && count <= 1000;
+
+                if (!isValid && userCountInput.value !== '') {
+                    userCountInput.style.borderColor = '#ff6b6b';
+                    startBtn.disabled = true;
+                } else {
+                    userCountInput.style.borderColor = '#e9ecef';
+                    startBtn.disabled = isGenerating;
+                }
+            }
+
+            function calculateEstimatedTime() {
+                const count = parseInt(userCountInput.value) || 0;
+                const timePerUser = 2; // 2 seconds per user
+                const totalSeconds = count * timePerUser;
+
+                if (totalSeconds < 60) {
+                    document.getElementById('estimatedTime').textContent = totalSeconds + 's';
+                } else {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    document.getElementById('estimatedTime').textContent =
+                        minutes + 'm ' + (seconds > 0 ? seconds + 's' : '');
+                }
+            }
+
+            // Start generation
+            startBtn.addEventListener('click', function() {
+                const count = parseInt(userCountInput.value);
+
+                if (!count || count < 1 || count > 1000) {
+                    showStatus('error', 'กรุณาใส่จำนวนผู้ใช้ระหว่าง 1-1000');
+                    return;
+                }
+
+                startGeneration(count);
+            });
+
+            // Stop generation
+            stopBtn.addEventListener('click', function() {
+                stopGeneration();
+            });
+
+            function startGeneration(count) {
+                isGenerating = true;
+                currentProgress = 0;
+                totalUsers = count;
+
+                // Update UI
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<div class="loading-spinner"></div> กำลังสร้าง...';
+                stopBtn.disabled = false;
+                userCountInput.disabled = true;
+
+                // Show progress
+                progressContainer.classList.add('show');
+                updateProgress(0, count);
+        fetch('/User/StartGenerating', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ count: count })
+        })
+        .then(res => res.json())  // <<< เปลี่ยนเป็น .json()
+        .then(data => {
+            // process data ตามปกติเลย
+            if (data.status === 'completed') {
+                showStatus('active', `สร้างผู้ใช้เสร็จสิ้น! สร้าง ${data.users.length} ผู้ใช้สำเร็จ`);
+                renderGeneratedUsers(data.users);
+                resetUI();
+                updateStats();
+            } else if (data.status === 'already-running') {
+                showStatus('error', 'ระบบกำลังสร้างผู้ใช้อยู่แล้ว โปรดลองใหม่ภายหลัง');
+                resetUI();
+            } else {
+                showStatus('error', 'เกิดข้อผิดพลาด: ' + (data.message || 'ไม่ทราบสาเหตุ'));
+                resetUI();
+            }
+        })
+        .catch(error => {
+            showStatus('error', 'เกิดข้อผิดพลาด: ' + error.message);
+            resetUI();
+        });
+
+
+            }
+
+            function stopGeneration() {
+                fetch('/User/StopGenerating', {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showStatus('error', 'หยุดการทำงานแล้ว');
+                    resetUI();
+                })
+                .catch(error => {
+                    showStatus('error', 'เกิดข้อผิดพลาดในการหยุด: ' + error.message);
+                    resetUI();
+                });
+
+                if (generationInterval) {
+                    clearInterval(generationInterval);
+                }
+            }
+
+            function simulateProgress(total) {
+                let completed = 0;
+                const timePerUser = 2000; // 2 seconds per user
+
+                generationInterval = setInterval(() => {
+                    completed++;
+                    currentProgress = completed;
+
+                    updateProgress(completed, total);
+
+                    if (completed >= total) {
+                        clearInterval(generationInterval);
+                        showStatus('active', `สร้างผู้ใช้เสร็จสิ้น! สร้าง ${total} ผู้ใช้สำเร็จ`);
+                        resetUI();
+                        updateStats();
+                    } else {
+                        showStatus('loading', `กำลังสร้างผู้ใช้... ${completed}/${total}`);
+                    }
+                }, timePerUser);
+            }
+
+            function updateProgress(current, total) {
+                const percentage = (current / total) * 100;
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = `${current} / ${total} ผู้ใช้`;
+            }
+
+            function showStatus(type, message) {
+                statusDiv.className = `status-content ${type}`;
+                statusDiv.innerHTML = getStatusIcon(type) + ' ' + message;
+            }
+
+            function getStatusIcon(type) {
+                switch(type) {
+                    case 'active': return '<i class="fas fa-check-circle"></i>';
+                    case 'error': return '<i class="fas fa-exclamation-triangle"></i>';
+                    case 'loading': return '<div class="loading-spinner"></div>';
+                    default: return '<i class="fas fa-info-circle"></i>';
+                }
+            }
+
+            function resetUI() {
+                isGenerating = false;
+
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="fas fa-play"></i> เริ่มสร้างผู้ใช้';
+                stopBtn.disabled = true;
+                userCountInput.disabled = false;
+
+                setTimeout(() => {
+                    progressContainer.classList.remove('show');
+                }, 2000);
+            }
+
+            function updateStats() {
+                // Simulate stats update
+                const stats = {
+                    totalUsers: Math.floor(Math.random() * 1000) + 100,
+                    createdToday: Math.floor(Math.random() * 50) + 5,
+                    successRate: '98%'
+                };
+
+                document.getElementById('totalUsers').textContent = stats.totalUsers.toLocaleString();
+                document.getElementById('createdToday').textContent = stats.createdToday.toLocaleString();
+                document.getElementById('successRate').textContent = stats.successRate;
+            }
+
+            // Auto-update stats every 30 seconds
+            setInterval(updateStats, 30000);
+        });
+    </script>
+</body>
+</html>
