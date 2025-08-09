@@ -10,6 +10,7 @@ services:
     environment:
       - DOTNET_RUNNING_IN_CONTAINER=true
       - DOTNET_USE_POLLING_FILE_WATCHER=true
+      - OpenAI__ApiKey=${OpenAI__ApiKey}
     networks:
       - bot-network
 

@@ -112,6 +112,6 @@ public class AutoPostService : BackgroundService
         var updatedJson = JsonSerializer.Serialize(posts, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(postJsonPath, updatedJson);
 
-        Console.WriteLine($"[AutoPostService] สร้างโพสต์ใหม่โดย {randomUser} รูปจากโฟลเดอร์ {folderName}");
+        // Console.WriteLine($"[AutoPostService] สร้างโพสต์ใหม่โดย {randomUser} รูปจากโฟลเดอร์ {folderName}");
     }
 }
