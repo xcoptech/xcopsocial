@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: xcop-social
     ports:
-      - "8080:8080" # แก้พอร์ตตามที่แอปใช้จริง
+      - "8081:8080" # แก้พอร์ตตามที่แอปใช้จริง
     restart: unless-stopped
     environment:
       - DOTNET_RUNNING_IN_CONTAINER=true
