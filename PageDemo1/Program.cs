@@ -9,11 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // ลงทะเบียน OpenAIService ใน DI container
-builder.Services.AddSingleton<OpenAIService>(sp => {
-    var config = sp.GetRequiredService<IConfiguration>();
-    var apiKey = config["OpenAI:ApiKey"];
-    return new OpenAIService(apiKey);
-});
+builder.Services.AddSingleton<OpenAIService>();
 
 // ลงทะเบียน BackgroundService สำหรับ AutoPost
 builder.Services.AddHostedService<AutoPostService>();
