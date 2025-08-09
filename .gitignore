@@ -63,3 +63,5 @@ _ReSharper*/
 *.DotSettings.user
 *.DS_Store
 Thumbs.db
+
+.env
